@@ -1,0 +1,76 @@
+<style>
+#search { color:black; cursor: pointer; }
+#search:hover { color:#039be5; }
+
+.input-field .prefix.prefix--post {
+	right: 0px;
+}
+.input-field .prefix.prefix--post ~ input, .input-field .prefix.prefix--post ~ label, .input-field .prefix.prefix--post ~ .helper-text {
+	margin-left: 0;
+	margin-right: 3rem;
+}
+</style>
+
+<form id="form">
+<input type="hidden" id="id_hidden" name="pessoa" />
+    <div class="row">
+        <div class="input-field">
+            <a id="search"><i class="material-icons prefix prefix--post">search</i></a>
+            <input type="text" autocomplete="off" id="input_busca">
+            <label for="input_busca" class="active">Buscar pessoas</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="input-field">
+                <button class="btn waves-effect waves-light right" type="submit">Adicionar
+                    <i class="material-icons left">person_add</i>
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+$(document).ready(function(){
+    const input = $("#input_busca");
+    
+    // NO BACKEND, A CONSULTA RETORNA UM ARRAY DE OBJETOS
+    // NO FORMATO: "ID": NÚMERO>0, "NOME": ""
+    // SE VAZIO, "ID": ""
+
+    $("#search").click(() => {
+        $.ajax({
+            url: 'URL CONTENDO DATA DO AUTOCOMPLETE',
+            data: {"q": input.val()},
+            success: (response) => {
+                if(response[0]["id"] === ""){
+                    M.toast({html: "Pessoa encontrada ou indisponível!", classes: "red"});
+                } else {
+                    var arrayResponse = response, dataPessoas = {}, dataPessoas2 = {};
+                    for(var i=0; i < arrayResponse.length; i++){
+                        dataPessoas[arrayResponse[i].nome] = null;
+                        dataPessoas2[arrayResponse[i].nome] = arrayResponse[i];
+                    }
+                    input.autocomplete({
+                        data: dataPessoas,
+                        onAutocomplete: (reqdata) => {
+                            $("#id_hidden").val(dataPessoas2[reqdata]["id"]);
+                            M.updateTextFields();
+
+                            input.bind("click", () => {
+                                $("#form").trigger("reset");
+                                $("#id_hidden").val("");
+
+                                M.updateTextFields();
+                            });
+                            M.Autocomplete.getInstance(input).destroy();
+                        }
+                    });
+                    M.Autocomplete.getInstance(input).open();
+                }
+            }
+        });
+    });
+});
+</script>
